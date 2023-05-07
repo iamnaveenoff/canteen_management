@@ -1,3 +1,4 @@
+import 'package:canteen_management/screens/qr_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,6 +53,17 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Welcome, $name!'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QRScannerPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Padding(

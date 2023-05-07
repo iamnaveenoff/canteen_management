@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +26,6 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
   late SharedPreferences logindata;
   late bool newuser;
-  // final APIService _apiClient = APIService();
 
   Future<void> _login() async {
     String username = empIdController.text.trim().toLowerCase();
@@ -36,42 +34,46 @@ class _LoginPageState extends State<LoginPage> {
     var provider = Provider.of<LoginProvider>(context, listen: false);
     await provider.loginData(loginBody).then((value) => {message = value});
     if (provider.isBack) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             ' $message',
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           backgroundColor: Colors.green,
         ),
       );
-      // ignore: use_build_context_synchronously
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error: ${message}'),
-        backgroundColor: Colors.red.shade300,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${message}'),
+          backgroundColor: Colors.red.shade300,
+        ),
+      );
     }
   }
 
   @override
   void initState() {
     super.initState();
-    // check_if_already_login();
+    checkIfAlreadyLogin();
   }
 
-  void check_if_already_login() async {
+  void checkIfAlreadyLogin() async {
     logindata = await SharedPreferences.getInstance();
     newuser = (logindata.getBool('isLoggedIn') ?? true);
-    if (newuser == false) {
+    if (!newuser) {
       Navigator.pushReplacement(
-          context, new MaterialPageRoute(builder: (context) => HomePage()));
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
     }
   }
 
@@ -86,20 +88,13 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const SizedBox(
-                height: 60,
-              ),
-              // SvgPicture.asset('images/Logo.svg', width: 160, height: 160),
-              /* const Text(
-                "GSC",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 40,
-                ),
-              ), */
-              const SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 60),
+              // SizedBox(
+              //   width: 160,
+              //   height: 160,
+              //   child: Image.asset('images/Logo.png'),
+              // ),
+              const SizedBox(height: 30),
               Form(
                 key: _formKey,
                 child: Column(
@@ -117,10 +112,8 @@ class _LoginPageState extends State<LoginPage> {
                       maxLines: 1,
                       decoration: InputDecoration(
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         hintStyle: const TextStyle(color: Colors.black),
                         hintText: 'Enter Your EMP ID',
@@ -131,11 +124,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: passwordController,
+                      obscureText: _isObscure,
                       style: const TextStyle(color: Colors.black),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -143,85 +135,103 @@ class _LoginPageState extends State<LoginPage> {
                         }
                         return null;
                       },
-                      maxLines: 1,
-                      obscureText: _isObscure,
                       decoration: InputDecoration(
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: Colors.black),
+                        ),
+                        hintStyle: const TextStyle(color: Colors.black),
+                        hintText: 'Enter Your Password',
+                        prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                        suffixIcon: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isObscure = !_isObscure;
+                            });
+                          },
+                          child: Icon(
+                            _isObscure
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.black,
                           ),
                         ),
-                        hintStyle: const TextStyle(color: Colors.black),
-                        prefixIcon: const Icon(
-                          Icons.lock,
-                          color: Colors.black,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(_isObscure
-                              ? Icons.visibility
-                              : Icons.visibility_off),
-                          onPressed: () {
-                            setState(
-                              () {
-                                _isObscure = !_isObscure;
-                              },
-                            );
-                          },
-                        ),
-                        hintText: 'Enter Your Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            setState(() {
+                              isAPICallProcess = true;
+                            });
+                            await _login();
+                            setState(() {
+                              isAPICallProcess = false;
+                            });
+                          }
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Theme.of(context).colorScheme.secondary),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          child: isAPICallProcess
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'LOGIN',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                        ),
+                      ),
                     ),
-                    ElevatedButton(
-                      // onPressed: login,
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          _login();
-                        }
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RegisterPage()),
+                        );
                       },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.fromLTRB(40, 15, 40, 15),
-                      ),
-                      child: const Text(
-                        'Sign in',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Not registered yet?',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterPage(),
+                      child: RichText(
+                        text: const TextSpan(
+                          text: 'Don\'t have an account? ',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'Register here',
+                              style: TextStyle(
+                                color: Colors.blueAccent,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
-                            );
-                          },
-                          child: const Text('Create an account'),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
